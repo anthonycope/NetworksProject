@@ -48,16 +48,16 @@
 
 import socket               # Import socket module
 
-s = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 12345                # Reserve a port for your service.
-s.bind((host, port))        # Bind to the port
+s = socket.socket()         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+port = 12345                #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+s.bind((host, port))        #source code from http:#www.tutorialspoint.com/python/python_networking.htm
 
-s.listen(5)                 # Now wait for client connection.
+s.listen(5)                 #source code from http:#www.tutorialspoint.com/python/python_networking.htm
 while True:
-   c, addr = s.accept()     # Establish connection with client.
+   c, addr = s.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
    message = c.recv(8192)   # maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
    print message
    print 'Received message from', addr
-   c.send('Thank you for connecting')
+   c.send('Message Received')
   # c.close()                # Close the connection

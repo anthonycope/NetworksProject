@@ -41,22 +41,52 @@
 
 #source code from http://www.tutorialspoint.com/python/python_networking.htm
 import socket               # Import socket module
+import time                 # Import time module
 
-s = socket.socket()         # Create a socket object
-host = socket.gethostname() # Get local machine name
-port = 12345                # Reserve a port for your service.
+#put in a menu with options for send/receive
 
-print 'Enter your e-mail message.'
-message = raw_input()   # gets input from user
+def main():
 
-s.connect((host, port))
-s.send(message)
-#need error handling if receiver is offline
-#t_delay = 2 seconds
-#t_offline = 10 seconds
-#if time > t_offline
-    #
+    #print("(W)rite email or (R)ead latest message")
+    #choice = raw_input()
+    #if choice == 'W':
+    print 'Enter your e-mail message.'
+    message = raw_input()   # gets input from user
+    send(message)
 
-print s.recv(1024)
-s.close()                     # Close the socket when done
+def send(message):
+    s = socket.socket()         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    port = 12345                #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    t_delay = 2 #amount of time after receiver comes online that message must be sent by
+    t_offline = 5 * t_delay #amount of time until receiver deemed offline
+
+
+    retryTime = 0 #Total amount time spent retrying
+    sent = False
+    while retryTime < t_offline and not sent:
+
+        try:
+            s.settimeout(5) #Timeout occurs after 5 seconds
+            s.connect((host, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
+            s.send(message)
+            #t_offline = 10 seconds
+            #if time > t_offline
+                #
+
+            print s.recv(1024)
+            sent = True
+        except socket.error:
+            print ("Recepient is offline. Retry in {} seconds".format(t_delay))
+            retryTime+= t_delay
+            s.close()
+            time.sleep(t_delay)
+
+        except socket.timeout:
+            print "Timed out"
+            s.close()
+
+
+if __name__ == "__main__":
+    main()
 
