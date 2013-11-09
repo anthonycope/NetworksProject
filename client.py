@@ -55,38 +55,89 @@ def main():
     send(message)
 
 def send(message):
-    s = socket.socket()         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
     host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    udpSocketSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udpSocketRecv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     port = 12345                #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-    t_delay = 2 #amount of time after receiver comes online that message must be sent by
+    portUDPSend = 23456     #port for sending UDP
+    portUDPRecv = 34567     #port for receiving UDP 
+    t_delay = 2             #amount of time after receiver comes online that message must be sent by
     t_offline = 5 * t_delay #amount of time until receiver deemed offline
-
+    #s.bind((host,port))
+    udpSocketRecv.bind((host,portUDPRecv))
 
     retryTime = 0 #Total amount time spent retrying
     sent = False
+
+    #s.connect((host, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
+    #s.send(message)
+    #print s.recv(1024)
+    # s.close()
+    # udpSocketRecv.close()
+    # udpSocketSend.close()
+
     while retryTime < t_offline and not sent:
 
         try:
-            s.settimeout(5) #Timeout occurs after 5 seconds
+            udpSocketRecv.settimeout(retryTime)
+            udpSocketRecv.setblocking()
+            udpSocketSend.sendto(message, (host, portUDPSend))
+            udpSocketSend.close()
+            
+            recvMessage, addr = udpSocketRecv.recvfrom(8192)
+            print recvMessage
+            print 'Received message from', addr
+            udpSocketRecv.close()
+
             s.connect((host, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
             s.send(message)
-            #t_offline = 10 seconds
-            #if time > t_offline
-                #
-
             print s.recv(1024)
-            sent = True
-        except socket.error:
+            print recvMessage
+            s.close()
+            sent = true
+
+         except socket.timeout:
+            print "Timed out"
+            udpSocketRecv.close()
+            udpSocketSend.close()
+            s.close()  
+
+        except socket.error as e:
+            print str(e)
             print ("Recepient is offline. Retry in {} seconds".format(t_delay))
             retryTime+= t_delay
-            s.close()
-            time.sleep(t_delay)
+            #udpSocketRecv.close()
+            #udpSocketSend.close()
+            #s.close()
+            time.sleep(t_delay) 
+       
+        udpSocketRecv.close()
+        udpSocketSend.close()
+        s.close()      
 
-        except socket.timeout:
-            print "Timed out"
-            s.close()
+
+
+        #     # try:
+        #     #     s.settimeout(5) #Timeout occurs after 5 seconds
+        #     #     s.connect((host, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
+        #     #     s.send(message)
+        #     #     #t_offline = 10 seconds
+        #     #     #if time > t_offline
+        #     #         #
+
+        #     #     print s.recv(1024)
+        #     #     sent = True
+        #     # except socket.error:
+        #     #     print ("Recepient is offline. Retry in {} seconds".format(t_delay))
+        #     #     retryTime+= t_delay
+        #     #     s.close()
+        #     #     time.sleep(t_delay)
+
+        #     # except socket.timeout:
+        #     #     print "Timed out"
+        #     #     s.close()
 
 
 if __name__ == "__main__":
     main()
-
