@@ -3,85 +3,75 @@
 #=  client, and displays upon receipt.                                     =
 #===========================================================================
 #=  Notes:                                                                 =
-#=    1) Input from input file "in.dat" to stdin (see example below)       =
-#=        * Comments are bounded by "&" characters at the beginning and    =
-#=          end of a comment block                                         =
-#=    2) Output is to stdout                                               =
 #=-------------------------------------------------------------------------=
 #=-------------------------------------------------------------------------=
-#= Example output (for above "in.dat"):                                    =
-#=                                                                         =
-#=   ---------------------------------------------- summary1.c -----       =
-#=     Total of 11 values                                                  =
-#=       Minimum  = 39.000000 (position = 6)                               =
-#=       Maximum  = 61.000000 (position = 3)                               =
-#=       Sum      = 561.000000                                             =
-#=       Mean     = 51.000000                                              =
-#=       Variance = 52.545455                                              =
-#=       Std Dev  = 7.248824                                               =
-#=       CoV      = 0.142134                                               =
-#=   ---------------------------------------------------------------       =
+#=  Example output:                                                        =
+#=  Received message from ('192.168.1.130', 57541)                         =
+#=  Test Message                                                           =
 #=-------------------------------------------------------------------------=
 #=  Bugs: None known                                                       =
 #=-------------------------------------------------------------------------=
 #=  Build/Execute: python server.py                                        =
 #=-------------------------------------------------------------------------=
 #=  Authors: Anthony Cope & Matthew Weis                                   =
-#=          University of South Florida                                    =                                  
-#=          Email: anthonycope@mail.usf.edu & weis@mail.usf.edu            =
+#=           University of South Florida                                   =                                  
+#=           Email: anthonycope@mail.usf.edu & weis@mail.usf.edu           =
 #=-------------------------------------------------------------------------=
 #=  History: ADC (10/13/13) - Intial creation                              =
+#=  History: ADC (11/10/13) - Finalized with UDP/TCP                       =
 #===========================================================================
 #----- Include files -------------------------------------------------------
-
-#----- Defines -------------------------------------------------------------
-
-#----- Global variables ----------------------------------------------------
-
-#----- Function prototypes -------------------------------------------------
+import socket               
 
 #===== Main program ========================================================
 
-#!/usr/bin/python           # This is server.py file
-
-#source code from http:#www.tutorialspoint.com/python/python_networking.htm
-
-import socket               # Import socket module
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+tcpSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
 udpSocketRecv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udpSocketSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+#source code from http:#www.tutorialspoint.com/python/python_networking.htm
+host = socket.gethostname() 
 port = 12345                #port for TCP
 portUDPRecv = 23456			#port for receiving UDP message
 portUDPSend = 34567			#port for sending UDP message
-s.bind((host, port))        #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-#s.listen(5)                 #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+
+#source code from http:#www.tutorialspoint.com/python/python_networking.htm
+tcpSocket.bind((host, port))                   
+#source code from http:#www.tutorialspoint.com/python/python_networking.htm
 udpSocketRecv.bind((host,portUDPRecv))
-#udpSocket.bind((()))
 
 while True:
-
-    message, addr = udpSocketRecv.recvfrom(8192)
+    #wait for UDP message and send ACK back to sender
+    message, addr = udpSocketRecv.recvfrom(1000)
     #print message
     #print 'Received ACK request from', addr
     udpSocketSend.sendto('ACK', (addr[0], portUDPSend))
-    s.settimeout(2)
-    s.listen(5)
+
+    #listen for TCP connection request
+    tcpSocket.settimeout(2)
+    tcpSocket.listen(5)
 
     try:
-        c, addr = s.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-        message = c.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
+        #accept TCP request from sender and assign to socket
+        clientSocket, addr = tcpSocket.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+        clientSocket.settimeout(2)
+        clientSocket.setblocking(1)
+
+        #receive message from sende and print it out
+        message = clientSocket.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
         print 'Received message from', addr
         print message
-        c.send('Message Received') 
-        c.close() # close new TCP socket
+
+        #acknowledge message received and close socet
+        clientSocket.send('Message Received') 
+        clientSocket.close() 
+
+    #reset loop if no TCP connection received
     except socket.timeout:
-        #print "Timed out"
         print "TCP Connection timed out"
-s.close()
+
+#close all sockets on exit        
+tcpSocket.close()
 udpSocketSend.close()
 udpSocketRecv.close()
-	#exit()
-	#break
+
