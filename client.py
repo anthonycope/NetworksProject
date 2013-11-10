@@ -92,7 +92,7 @@ def send(message, destinationAddress):
             udpSocketSend.sendto(message, (destinationAddress, portUDPSend))
             
             recvMessage, addr = udpSocketRecv.recvfrom(8192)
-            print 'Received ACK from', addr
+            #print 'Received ACK from', addr
             udpSocketRecv.close()
             #break;
             s.connect((destinationAddress, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm

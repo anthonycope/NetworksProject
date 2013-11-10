@@ -64,9 +64,9 @@ udpSocketRecv.bind((host,portUDPRecv))
 while True:
 
     message, addr = udpSocketRecv.recvfrom(8192)
-    print message
-    print 'Received ACK request from', addr
-    udpSocketSend.sendto('ACK', (host, portUDPSend))
+    #print message
+    #print 'Received ACK request from', addr
+    udpSocketSend.sendto('ACK', (addr[0], portUDPSend))
     s.settimeout(2)
     s.listen(5)
 
@@ -77,11 +77,10 @@ while True:
         print message
         c.send('Message Received')
     except socket.timeout:
-        print "Timed out"
-        print "TCP timed out"
-
-	# s.close()
-	# udpSocketSend.close()
-	# udpSocketRecv.close()
+        #print "Timed out"
+        print "TCP Connection timed out"
+s.close()
+udpSocketSend.close()
+udpSocketRecv.close()
 	#exit()
 	#break
