@@ -47,19 +47,26 @@ import time                 # Import time module
 
 def main():
 
-    #print("(W)rite email or (R)ead latest message")
-    #choice = raw_input()
-    #if choice == 'W':
-    print 'Enter your e-mail message.'
-    message = raw_input()   # gets input from user
-    send(message)
+    while True:
+        print("(W)rite email or (E)xit")
+        choice = raw_input()
+        if choice.upper() == 'W':
+            print 'Enter the IP Address of the recepient.'
+            destinationAddress = raw_input()
 
-def send(message):
+            print 'Enter your e-mail message.'
+            message = raw_input()   # gets e-mail contents from user
+
+            send(message, destinationAddress)
+        else:
+            break
+
+def send(message, destinationAddress):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         #source code from http:#www.tutorialspoint.com/python/python_networking.htm
     host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
     udpSocketSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udpSocketRecv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    port = 12345                #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+    port = 12345            #port for TCP
     portUDPSend = 23456     #port for sending UDP
     portUDPRecv = 34567     #port for receiving UDP 
     t_delay = 2             #amount of time after receiver comes online that message must be sent by
@@ -79,42 +86,38 @@ def send(message):
 
     while retryTime < t_offline and not sent:
 
-        try:
-            udpSocketRecv.settimeout(retryTime)
-            udpSocketRecv.setblocking()
-            udpSocketSend.sendto(message, (host, portUDPSend))
-            udpSocketSend.close()
+        try:            
+            udpSocketRecv.setblocking(1)
+            udpSocketRecv.settimeout(t_delay)
+            udpSocketSend.sendto(message, (destinationAddress, portUDPSend))
             
             recvMessage, addr = udpSocketRecv.recvfrom(8192)
-            print recvMessage
-            print 'Received message from', addr
+            #print 'Received ACK from', addr
             udpSocketRecv.close()
-
-            s.connect((host, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
+            #break;
+            s.connect((destinationAddress, port)) #source code from http://www.tutorialspoint.com/python/python_networking.htm
             s.send(message)
-            print s.recv(1024)
-            print recvMessage
-            s.close()
-            sent = true
+            #print s.recv(1024)
+            sent = True
+            print "Message Sent"
 
-         except socket.timeout:
-            print "Timed out"
-            udpSocketRecv.close()
-            udpSocketSend.close()
-            s.close()  
+        except socket.timeout:
+            print ("Timed out. Retry in {} seconds".format(t_delay))
+            retryTime+= t_delay
+            time.sleep(t_delay) 
 
         except socket.error as e:
             print str(e)
-            print ("Recepient is offline. Retry in {} seconds".format(t_delay))
+            print ("An error has occurred. Retry in {} seconds".format(t_delay))
             retryTime+= t_delay
             #udpSocketRecv.close()
             #udpSocketSend.close()
             #s.close()
             time.sleep(t_delay) 
        
-        udpSocketRecv.close()
-        udpSocketSend.close()
-        s.close()      
+    udpSocketRecv.close()
+    udpSocketSend.close()
+    s.close()      
 
 
 

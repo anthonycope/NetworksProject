@@ -53,7 +53,7 @@ udpSocketRecv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udpSocketSend = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 host = socket.gethostname() #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-port = 12345                #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+port = 12345                #port for TCP
 portUDPRecv = 23456			#port for receiving UDP message
 portUDPSend = 34567			#port for sending UDP message
 s.bind((host, port))        #source code from http:#www.tutorialspoint.com/python/python_networking.htm
@@ -63,16 +63,22 @@ udpSocketRecv.bind((host,portUDPRecv))
 
 while True:
 
-	message, addr = udpSocketRecv.recvfrom(8192)
-	print message
-	print 'Received message from', addr
-	udpSocketSend.sendto('ACK', (host, portUDPSend))
-	s.listen(5)
-	c, addr = s.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-	message = c.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
-	print message
-	print 'Received message from', addr
-	c.send('Message Received')
+    message, addr = udpSocketRecv.recvfrom(8192)
+    #print message
+    #print 'Received ACK request from', addr
+    udpSocketSend.sendto('ACK', (host, portUDPSend))
+    s.settimeout(5)
+    s.listen(5)
+
+    try:
+        c, addr = s.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
+        message = c.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
+        print 'Received message from', addr
+        print message
+        c.send('Message Received')
+    except socket.timeout:
+        print "Timed out"
+
 	# s.close()
 	# udpSocketSend.close()
 	# udpSocketRecv.close()
