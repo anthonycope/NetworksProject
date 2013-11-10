@@ -75,7 +75,8 @@ while True:
         message = c.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
         print 'Received message from', addr
         print message
-        c.send('Message Received')
+        c.send('Message Received') 
+        c.close() # close new TCP socket
     except socket.timeout:
         #print "Timed out"
         print "TCP Connection timed out"
