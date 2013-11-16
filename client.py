@@ -98,15 +98,19 @@ def send(message, destinationAddress):
             #print 'Received ACK from', addr
             udpSocketRecv.close()
 
-            #break;
             if recvMessage:
                 #source code from http://www.tutorialspoint.com/python/python_networking.htm
                 #create TCP connection to receiver and send message
-                tcpSocket.connect((destinationAddress, port)) 
-                tcpSocket.send(message)
-                #print tcpSocket.recv(1024)
-                sent = True
-                print "Message Sent"
+                try:
+                    tcpSocket.connect((destinationAddress, port)) 
+                    tcpSocket.send(message)
+                    sent = True
+                    print "Message Sent"
+                except socket.error as e:
+                    print str(e)
+                    print ("An error has occurred. Retry in {} seconds".format(t_delay))
+
+
 
         #if there is a timeout, retry in t_delay seconds
         except socket.timeout:
@@ -120,6 +124,8 @@ def send(message, destinationAddress):
             print ("An error has occurred. Retry in {} seconds".format(t_delay))
             retryTime+= t_delay
             time.sleep(t_delay) 
+    if not sent:
+        print "Message was unable to be sent"
        
     #close all sockets
     udpSocketRecv.close()

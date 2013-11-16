@@ -48,11 +48,10 @@ while True:
     #print 'Received ACK request from', addr
     udpSocketSend.sendto('ACK', (addr[0], portUDPSend))
 
-    #listen for TCP connection request
-    tcpSocket.settimeout(2)
-    tcpSocket.listen(5)
-
     try:
+        #listen for TCP connection request
+        tcpSocket.settimeout(2)
+        tcpSocket.listen(5)
         #accept TCP request from sender and assign to socket
         clientSocket, addr = tcpSocket.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
         clientSocket.settimeout(1.5)
