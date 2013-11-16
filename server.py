@@ -55,7 +55,7 @@ while True:
     try:
         #accept TCP request from sender and assign to socket
         clientSocket, addr = tcpSocket.accept()     #source code from http:#www.tutorialspoint.com/python/python_networking.htm
-        clientSocket.settimeout(2)
+        clientSocket.settimeout(1.5)
         clientSocket.setblocking(1)
 
         #uses time to randomly generate 
@@ -80,7 +80,7 @@ while True:
 
     #reset loop if no TCP connection received
     except socket.timeout:
-        print "TCP Connection timed out"
+        print "TCP Connection timed out, resending ACK"
 
 #close all sockets on exit        
 tcpSocket.close()

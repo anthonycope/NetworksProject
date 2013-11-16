@@ -94,19 +94,19 @@ def send(message, destinationAddress):
             
             #source code from http://www.tutorialspoint.com/python/python_networking.htm
             #receive ACK from receiver and close socket
-            recvMessage, addr = udpSocketRecv.recvfrom(1000)
+            recvMessage, addr = udpSocketRecv.recvfrom(1024)
             #print 'Received ACK from', addr
             udpSocketRecv.close()
 
             #break;
-
-            #source code from http://www.tutorialspoint.com/python/python_networking.htm
-            #create TCP connection to receiver and send message
-            tcpSocket.connect((destinationAddress, port)) 
-            tcpSocket.send(message)
-            #print tcpSocket.recv(1024)
-            sent = True
-            print "Message Sent"
+            if recvMessage:
+                #source code from http://www.tutorialspoint.com/python/python_networking.htm
+                #create TCP connection to receiver and send message
+                tcpSocket.connect((destinationAddress, port)) 
+                tcpSocket.send(message)
+                #print tcpSocket.recv(1024)
+                sent = True
+                print "Message Sent"
 
         #if there is a timeout, retry in t_delay seconds
         except socket.timeout:
