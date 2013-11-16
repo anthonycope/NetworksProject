@@ -21,7 +21,8 @@
 #=  History: ADC (11/10/13) - Finalized with UDP/TCP                       =
 #===========================================================================
 #----- Include files -------------------------------------------------------
-import socket               
+import socket     
+import time      
 
 #===== Main program ========================================================
 
@@ -42,7 +43,7 @@ udpSocketRecv.bind((host,portUDPRecv))
 
 while True:
     #wait for UDP message and send ACK back to sender
-    message, addr = udpSocketRecv.recvfrom(1000)
+    message, addr = udpSocketRecv.recvfrom(1024)
     #print message
     #print 'Received ACK request from', addr
     udpSocketSend.sendto('ACK', (addr[0], portUDPSend))
@@ -57,10 +58,21 @@ while True:
         clientSocket.settimeout(2)
         clientSocket.setblocking(1)
 
-        #receive message from sende and print it out
-        message = clientSocket.recv(8192)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
+        #uses time to randomly generate 
+        messageName = 'recv' + str(time.time()) + '.txt'
+        outputFile = open(messageName, 'w')
+        #loop based on example given at http://docs.python.org/2/library/socket.html
+        while True:
+            #receive message from sender 1024 bytes at a time and output to file
+            message = clientSocket.recv(1024)   #maximum message size is 5000 chars, so 5000 bytes, should be a power of 2 so use 8192
+            if message:
+                #print message
+                outputFile.write(message)
+            else:
+                break
+
+        outputFile.close()
         print 'Received message from', addr
-        print message
 
         #acknowledge message received and close socet
         clientSocket.send('Message Received') 

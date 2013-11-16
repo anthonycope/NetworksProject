@@ -47,8 +47,11 @@ def main():
             print 'Enter the IP Address of the recepient.'
             destinationAddress = raw_input()
 
-            print 'Enter your e-mail message.'
-            message = raw_input() 
+            print 'Enter the the name of the email text file (include txt)'
+            messageName = raw_input() 
+
+            fileInput = open(messageName,'r')
+            message = fileInput.read()
 
             #call send function
             send(message, destinationAddress)
@@ -87,11 +90,11 @@ def send(message, destinationAddress):
             #set blocking and timeout for socket, then send UDP message   
             udpSocketRecv.setblocking(1)
             udpSocketRecv.settimeout(t_delay)
-            udpSocketSend.sendto(message, (destinationAddress, portUDPSend))
+            udpSocketSend.sendto('ACK', (destinationAddress, portUDPSend))
             
             #source code from http://www.tutorialspoint.com/python/python_networking.htm
             #receive ACK from receiver and close socket
-            recvMessage, addr = udpSocketRecv.recvfrom(8192)
+            recvMessage, addr = udpSocketRecv.recvfrom(1000)
             #print 'Received ACK from', addr
             udpSocketRecv.close()
 
