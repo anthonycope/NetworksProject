@@ -1,0 +1,279 @@
+ 
+
+
+
+Computer Networks Project Taskforce                         Anthony Cope
+Request for Comments: 7085                                  Matthew Weis
+Category: Experimental                       University of South Florida
+                                                           November 2013
+
+
+                          Point to Point Mail
+
+
+Abstract
+
+   The point to point, or ".2." protocol is used to describe the process
+   of communication across the Internet without the use of data centers.
+   We will show the process of this protocol by sending a simple ASCII
+   text file from one user to another. We can make the following
+   assumptions about the environment that the .2.mail protocol will be
+   run on.
+
+   	1. The sender and receiver each contain the Internet protocol stack.
+
+   	2. The sender always knows the IP address of the receiver. 
+
+   	3. Messages are unformatted ASCII text of no more than 5000         
+           characters including spaces.
+
+   	4. A receiver may not always have the .2.mail service running.
+
+   	5. A receiver may not always be online.
+
+   The requirements for the .2.mail protocol goes as follows:
+
+   	1. No use of services beyond those provided by the sender and       
+           receiver are allowed (that is, no service provided by a     
+           server may be used).
+
+   	2. A sender must be able to send a text message to an online        
+           receiver.
+
+   	3. The received message must be the same as the sent message (that  
+           is, it must not be corrupted).
+
+   	4. The received message must indicate who the sender is (by IP      
+           address).
+
+   	5. If a receiver is offline when a server has a message to send to  
+           it, the message must be sent by the sender within t_delay   
+           seconds of the receiver coming back online.
+
+ 
+
+
+Cope, Weis                    Experimental                      [Page 1]
+
+RFC 7085                  Point to Point Mail              November 2013
+
+
+   		a. Polling the receiver using a TCP request is not allowed.
+
+   	6. If a receiver is offline for more than t_offline seconds, the    
+           message shall not be delivered (that is, the sender should  
+           drop the message).
+
+   		a. Assume that t_offline is an even multiple of t_delay
+
+   	7. The protocol is reasonably tolerant of rare lost packets
+
+
+Status of this Memo
+
+   This document is not an Internet Standards Track specification; it is
+   published for experimental purposes only.
+
+   The purpose of this document is only to be used for educational
+   purposes. Any additional uses of this document are strictly
+   prohibited.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Cope, Weis                    Experimental                      [Page 2]
+
+RFC 7085                  Point to Point Mail              November 2013
+
+
+Table of Contents
+
+   1  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . .  4
+   2.  Protocol Description . . . . . . . . . . . . . . . . . . . . .  4
+     2.1   Finite State Machine Description . . . . . . . . . . . . .  5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Cope, Weis                    Experimental                      [Page 3]
+
+RFC 7085                  Point to Point Mail              November 2013
+
+
+1  Introduction
+
+   This document describes the basic .2.mail protocol. The .2.mail
+   protocol will be described with the use of a finite state machine.
+   There will be a FSM for both the sender and receiver. Any questions
+   or concerns about the protocol can be referred to the Protocol
+   Description section. 
+
+
+2.  Protocol Description
+
+   The main design of this protocol was built around the assumption that
+   there are no web servers to transfer Internet traffic from point-to-
+   point. With this design aspect in mind, there are numerous challenges
+   with respect to the design parameters. Because the receiver can not
+   be polled via TCP request, we thus have to poll the receiver using a
+   UDP request. Because of the nature of UDP, we have to account for
+   either the poll being lost or the receivers ACK being lost. In order
+   to overcome this challenge, we created a timeout system where the
+   sender will wait up to t_offline for an ACK from the receiver. During
+   this time, if the ACK is not received within t_delay, then the UDP
+   poll will be resent. Once the ACK is received from the receiver, the
+   sender will then send the text message via TCP. Because the message
+   itself can be send via TCP, once it is sent we will no longer have to
+   worry about the packet and can safely assume that TCP has done its
+   job correctly and the checksum has caught any errors in the packet.
+
+   For the receiver, it will constantly be suspended in the state of
+   waiting for a poll to come from a sender until it receives the UDP
+   poll. Once the poll is received, the receiver will send send the ACK
+   message and wait t_delay for the TCP connection from the sender. If
+   the TCP connection does not occur in t_delay seconds, it can be
+   assumed that the ACK was lost and then a resend of the ACK will
+   occur. One interesting situation that we had to account for was if
+   the sender suddenly goes offline after sending the UDP poll to the
+   receiver, but before sending the file. If the protocol does not account
+   for this situation, the receiver will be stuck sending ACK's to the
+   sender that is offline, thus sticking the receiver in an infinite
+   loop. In order to overcome this, we decided to send the ACK's only up
+   to t_offline. This way if the sender goes offline, the receiver will
+   break from the loop after t_offline. Once the ACK has successfully
+   been sent to the sender and the receiver gets the TCP connection for
+   the message, the cycle for sending ACK's is then broken and the
+   receiver goes back into its suspended default state where it waits
+   for a UDP poll from a sender.
+
+
+
+ 
+
+
+Cope, Weis                    Experimental                      [Page 4]
+
+RFC 7085                  Point to Point Mail              November 2013
+
+
+2.1   Finite State Machine Description
+|******************************************************************************|
+|Sender:                                            func_1:if(timmer>timeout)  |
+|            Default                 online_test             exit              |
+|Wait for    _______                 ___________           else                |
+|message        |    send_message()       |     timeout      timmer += t_delay |
+|enter--------->|------------------------>|-------------------->|              |
+|               |    send UDP             |  wait t_delay       |              |
+|               |    check timeout        |  send UDP           |              |
+|               |                         |  func_1             |              |
+|               |  timeout > t_offline    |<--------------------|              |
+|               |<------------------------|                  Sending           |
+|               | print "receiver offline"|ACK received      ________          |
+|               |                         |-------------------->|              |
+|               |                          create TCP connection|              |
+|               |                          connect              | timeout      |
+|               |                                               |----------->| |
+|               |                                               |wait t_delay| |
+|               |                                               |connect TCP | |
+|               |                                               |func_1      | |
+|               |               timeout > t_offline             |<-----------| |
+|               |<----------------------------------------------|              |
+|               |               print "receiver offline"        |              |
+|               |                                               |              |
+|               |               connection success              |              |
+|               |<----------------------------------------------|              |
+|                               send message                                   |
+|                                                                              |
+| Receiver:         Default                    Receiver                        |
+|                   _______                    ________                        |
+| Wait for------------>|    receive UDP poll      |     timeout                |
+| message from         |------------------------->|------------------->|       |
+| above                |    send UDP ACK          | wait t_delay       |       |
+|                      |                          | for tcp connection |       |
+|                      |  timeout > t_offline     | func_1             |       |
+|                      |<-------------------------| resend ACK         |       |
+|                      |                          |<-------------------|       |
+|                      |   tcp connection         |                            |
+|                      |<-------------------------|                            |
+|                          receive message                                     |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|******************************************************************************|
+Cope, Weis                    Experimental                      [Page 5]
