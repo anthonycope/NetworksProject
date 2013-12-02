@@ -4,7 +4,7 @@
 
 Computer Networks Project Taskforce                         Anthony Cope
 Request for Comments: 7085                                  Matthew Weis
-Catagory: Experimental                       University of South Florida
+Category: Experimental                       University of South Florida
                                                            November 2013
 
 
@@ -185,7 +185,7 @@ RFC 7085                  Point to Point Mail              November 2013
    there are no web servers to transfer Internet traffic from point-to-
    point. With this design aspect in mind, there are numerous challenges
    with respect to the design parameters. Because the receiver can not
-   be polled via TCP request, we thus has to poll the receiver using a
+   be polled via TCP request, we thus have to poll the receiver using a
    UDP request. Because of the nature of UDP, we have to account for
    either the poll being lost or the receivers ACK being lost. In order
    to overcome this challenge, we created a timeout system where the
@@ -205,7 +205,7 @@ RFC 7085                  Point to Point Mail              November 2013
    assumed that the ACK was lost and then a resend of the ACK will
    occur. One interesting situation that we had to account for was if
    the sender suddenly goes offline after sending the UDP poll to the
-   receiver, but before sending the . If the protocol does not account
+   receiver, but before sending the file. If the protocol does not account
    for this situation, the receiver will be stuck sending ACK's to the
    sender that is offline, thus sticking the receiver in an infinite
    loop. In order to overcome this, we decided to send the ACK's only up
