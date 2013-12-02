@@ -45,7 +45,7 @@ while True:
     #wait for UDP message and send ACK back to sender
     message, addr = udpSocketRecv.recvfrom(1024)
     #print message
-    #print 'Received ACK request from', addr
+    print 'Received ACK request from', addr
     udpSocketSend.sendto('ACK', (addr[0], portUDPSend))
 
     try:

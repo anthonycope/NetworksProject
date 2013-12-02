@@ -95,7 +95,6 @@ def send(message, destinationAddress):
             #source code from http://www.tutorialspoint.com/python/python_networking.htm
             #receive ACK from receiver and close socket
             recvMessage, addr = udpSocketRecv.recvfrom(1024)
-            #print 'Received ACK from', addr
             udpSocketRecv.close()
 
             if recvMessage:
